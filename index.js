@@ -19,7 +19,7 @@ http.createServer(function(req, res){
     http_proxy(opt, body, res);
   });
   
-}).listen(8080);
+}).listen(process.env.VCAP_APP_PORT || 3000);
 
 /////////////////////////////////////
 // http proxy
