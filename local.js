@@ -56,7 +56,6 @@ function get_req_headers(req){
   }
 
   headers["origin-url"] = req.url;
-  console.log("crypto: -" + headers["origin-url"] + "-");
   headers["host"] = config.proxy_host;
 
   return headers;
