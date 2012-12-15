@@ -2,12 +2,8 @@
 exports.json = {
   server_port: 3000,
 
-  //proxy_host: "http://xjz_node.ap01.aws.af.cm",
-  proxy_host: "http://xjz_nod.cloudfoundry.com",
-  //proxy_port: 80,
-
-  // proxy_host: "http://localhost",
-  // proxy_port: 3000,
+  proxy_host: "http://www.server.com",
+  proxy_port: 80,
 
   local_port: 7878,
 
