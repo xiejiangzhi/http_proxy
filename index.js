@@ -2,6 +2,9 @@
 var http = require('http');
 var url = require('url');
 
+var config = require(process.env.PWD + "/config/config").json;
+var cipher = require(process.env.PWD + "/libs/cipher");
+
 http.createServer(function(req, res){
   // request body
   var body = "";
@@ -15,7 +18,7 @@ http.createServer(function(req, res){
 
     http_proxy(opt, body, res);
   });
-}).listen(8080);
+}).listen(config.server_port);
 
 /////////////////////////////////////
 // http proxy
@@ -34,10 +37,12 @@ function http_proxy(opt, body, res){
 // set require headers
 
 function request_options(req){
-  var opt = url.parse(req.headers["origin-request-url"]);
+  var opt = url.parse(req.headers["origin-url"]);
+
+  delete req.headers["origin-url"];
 
   opt.headers = req.headers;
-  delete opt.headers["origin-request-url"];
+  opt.headers["host"] = opt.host;
   opt.method = req.method;
 
   return opt;
