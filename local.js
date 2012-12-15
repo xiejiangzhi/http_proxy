@@ -33,12 +33,10 @@ http.createServer(function(req, res){
 function http_proxy(opt, body, client_res){
   var start_time = new Date;
 
-  console.log("send");
   console.log(opt);
   http.request(opt, function(proxy_res){
     set_response(proxy_res, client_res);
 
-    console.log("server response");
     proxy_res.on("end", function(){
       print_log(opt.headers.host, proxy_res.statusCode, start_time);
     });
@@ -59,17 +57,10 @@ function get_req_headers(req){
     delete headers['proxy-connection'];
   }
 
-  headers["origin-url"] = req.url;
-  headers["host"] = config.proxy_host;
+  headers[config.headers_url_key] = req.url;
+  headers["host"] = url.parse(config.proxy_host).host;
 
   return headers;
-}
-
-function print_log(url, status, start_time){
-  console.log(
-    '\033[90m' + url + '\t\033[33m' + status + '\t\033[36m' +
-    (new Date - start_time) + 'ms \033[0m'
-  );
 }
 
 // set require headers
@@ -94,4 +85,11 @@ function set_response(proxy_res, client_res){
   proxy_res.on("end", function(){
     client_res.end();
   });
+}
+
+function print_log(url, status, start_time){
+  console.log(
+    '\033[90m' + url + '\t\033[33m' + status + '\t\033[36m' +
+    (new Date - start_time) + 'ms \033[0m'
+  );
 }

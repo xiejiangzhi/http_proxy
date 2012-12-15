@@ -6,14 +6,15 @@ var config = require(process.env.PWD + "/config/config").json;
 var cipher = require(process.env.PWD + "/libs/cipher");
 
 http.createServer(function(req, res){
-  if (req.headers["origin-url"] == null){
-    res.end("hello world!");
-    console.log("hello");
+  console.log(req.headers);
 
+  if (req.headers[config.headers_url_key] == null){
+    request_test(res);
+
+    console.log("hello");
     return ;
   } else {
-    console.log(req.headers["origin-url"]);
-    console.log(req.headers);
+    console.log("proxy");
   }
 
   // request body
@@ -47,10 +48,9 @@ function http_proxy(opt, body, res){
 // set require headers
 
 function request_options(req){
-  var opt = url.parse(req.headers["origin-url"]);
-  console.log(opt);
+  var opt = url.parse(req.headers[config.headers_url_key]);
 
-  delete req.headers["origin-url"];
+  delete req.headers[config.headers_url_key];
 
   opt.headers = req.headers;
   opt.headers["host"] = opt.host;
@@ -70,4 +70,16 @@ function set_response(req, res){
   req.on("end", function(){
     res.end();
   });
+}
+
+function request_test(res){
+  http.get("http://www.baidu.com", function(test_res){
+    test_res.on("data", function(chunk){
+      test_res.write(chunk);
+    });
+
+    test_res.on("end", function(){
+      res.end(body);
+    });
+  }).end();
 }
