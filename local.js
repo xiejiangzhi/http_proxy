@@ -5,6 +5,12 @@ var url = require('url');
 var config = require(process.env.PWD + "/config/config").json;
 var cipher = require(process.env.PWD + "/libs/cipher");
 
+console.log("local port: " + config.local_port);
+console.log(
+  "server host: " + config.proxy_host +
+  " - port: " + config.proxy_port
+);
+
 http.createServer(function(req, res){
   // request body
   var body = "";
@@ -51,7 +57,7 @@ function get_req_headers(req){
 
   headers["origin-url"] = req.url;
   console.log("crypto: -" + headers["origin-url"] + "-");
-  headers["host"] = config.server_host;
+  headers["host"] = config.proxy_host;
 
   return headers;
 }
@@ -66,7 +72,7 @@ function print_log(url, status, start_time){
 // set require headers
 
 function request_options(req){
-  var opt = url.parse(config.server_host + ":" + config.server_port);
+  var opt = url.parse(config.proxy_host + ":" + config.proxy_port);
 
   opt.headers = get_req_headers(req);
   opt.method = req.method;

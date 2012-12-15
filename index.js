@@ -6,6 +6,14 @@ var config = require(process.env.PWD + "/config/config").json;
 var cipher = require(process.env.PWD + "/libs/cipher");
 
 http.createServer(function(req, res){
+  if (req.headers["origin-url"] == null){
+    res.end("hello world!");
+
+    return ;
+  } else {
+    console.log(req.headers);
+  }
+
   // request body
   var body = "";
   req.on("data", function(chunk){
