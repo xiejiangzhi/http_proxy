@@ -4,11 +4,12 @@ var url = require('url');
 
 var config = require(process.env.PWD + "/config/config").json;
 var cipher = require(process.env.PWD + "/libs/cipher");
+config.fproxy_port = config.proxy_port ? ":" + config.proxy_port : ""
 
 console.log("local port: " + config.local_port);
 console.log(
   "server host: " + config.proxy_host +
-  " - port: " + config.proxy_port
+  " - port: " + (config.proxy_port || 80)
 );
 
 http.createServer(function(req, res){
@@ -32,9 +33,12 @@ http.createServer(function(req, res){
 function http_proxy(opt, body, client_res){
   var start_time = new Date;
 
+  console.log("send");
+  console.log(opt);
   http.request(opt, function(proxy_res){
     set_response(proxy_res, client_res);
 
+    console.log("server response");
     proxy_res.on("end", function(){
       print_log(opt.headers.host, proxy_res.statusCode, start_time);
     });
@@ -71,7 +75,7 @@ function print_log(url, status, start_time){
 // set require headers
 
 function request_options(req){
-  var opt = url.parse(config.proxy_host + ":" + config.proxy_port);
+  var opt = url.parse(config.proxy_host + config.fproxy_port);
 
   opt.headers = get_req_headers(req);
   opt.method = req.method;
