@@ -3,32 +3,46 @@ var crypto_config = config.crypto;
 
 var crypto = require("crypto");
 
-exports.cipher = cipher;
+exports.encipher = cipher;
 exports.decipher = decipher;
 exports.current_key = current_key;
+exports.sha1_key = sha1_key;
 
 
+var str_coding = "utf-8";
+var cipher_coding = "hex";
 
 ///////////////////// Helper ////////////////////
 
-function cipher(data){
+function cipher(data, in_coding){
+  var enbody = "";
   var ch = crypto.createCipher(
     crypto_config.algorithm, current_key()
   );
 
-  ch.update(data);
+  enbody += ch.update(data, in_coding || str_coding, cipher_coding);
+  enbody += ch.final(cipher_coding);
 
-  return ch.final();
+  return enbody;
 }
 
-function decipher(data){
+function decipher(data, in_coding){
+  var debody = "";
   var dh = crypto.createDecipher(
     crypto_config.algorithm, current_key()
   );
 
-  dh.update(data);
+  debody += dh.update(data, in_coding || cipher_coding, str_coding);
+  debody += dh.final(str_coding);
 
-  return dh.final();
+  return debody;
+}
+
+function sha1_key(str){
+  var sha1 = crypto.createHash('sha1');
+  sha1.update(str);
+
+  return sha1.digest(cipher_coding);
 }
 
 
@@ -41,7 +55,7 @@ function current_date(){
 }
 
 function current_key(){
-  var key = crypto_config.key + current_date();
+  var key = sha1_key(crypto_config.key + current_date());
 
   return key;
 }

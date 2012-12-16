@@ -23,25 +23,24 @@ http.createServer(function(req, res){
   req.on("end", function(){
     var opt = request_options(req);
 
-    http_proxy(opt, body, res);
+    http_proxy(opt, body, res, req);
   });
 }).listen(config.local_port);
 
 /////////////////////////////////////
 // http proxy
 
-function http_proxy(opt, body, client_res){
+function http_proxy(opt, body, client_res, client_req){
   var start_time = new Date;
 
-  console.log(opt);
   http.request(opt, function(proxy_res){
     set_response(proxy_res, client_res);
 
     proxy_res.on("end", function(){
-      print_log(opt.headers.host, proxy_res.statusCode, start_time);
+      print_log(client_req.url, proxy_res.statusCode, start_time);
     });
   }).on("error", function(error){
-    client_res.end("error: " + error);
+    client_res.end(error.toString());
   }).end(body);
 }
 
@@ -57,7 +56,12 @@ function get_req_headers(req){
     delete headers['proxy-connection'];
   }
 
-  headers[config.headers_url_key] = req.url;
+  headers[config.headers_message_key] = cipher.encipher(
+    JSON.stringify({
+      req_url: req.url
+    })
+  );
+
   headers["host"] = url.parse(config.proxy_host).host;
 
   return headers;
@@ -71,6 +75,9 @@ function request_options(req){
   opt.headers = get_req_headers(req);
   opt.method = req.method;
 
+  console.log(" ------------------------- request options -----------------------");
+  console.log(opt);
+
   return opt;
 }
 
@@ -79,6 +86,9 @@ function set_response(proxy_res, client_res){
   client_res.writeHead(proxy_res.statusCode, proxy_res.headers);
 
   proxy_res.on("data", function(chunk){
+    console.log(" ------------------------- proxy data -----------------------");
+    console.log(chunk);
+
     client_res.write(chunk);
   });
 

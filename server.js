@@ -6,15 +6,10 @@ var config = require(process.env.PWD + "/config/config").json;
 var cipher = require(process.env.PWD + "/libs/cipher");
 
 http.createServer(function(req, res){
-  console.log(req.headers);
-
-  if (req.headers[config.headers_url_key] == null){
+  if (req.headers[config.headers_message_key] == null){
     request_test(res);
 
-    console.log("hello");
     return ;
-  } else {
-    console.log("proxy");
   }
 
   // request body
@@ -27,6 +22,9 @@ http.createServer(function(req, res){
   req.on("end", function(){
     var opt = request_options(req);
 
+    console.log(" --------------------- client req data ---------------------");
+    console.log(body);
+
     http_proxy(opt, body, res);
   });
 }).listen(process.env.VCAP_APP_PORT || config.server_port);
@@ -38,7 +36,7 @@ function http_proxy(opt, body, res){
   http.request(opt, function(req){
     set_response(req, res);
   }).on("error", function(error){
-    res.end("error: " + error);
+    res.end(error.toString());
   }).end(body);
 }
 
@@ -48,9 +46,21 @@ function http_proxy(opt, body, res){
 // set require headers
 
 function request_options(req){
-  var opt = url.parse(req.headers[config.headers_url_key]);
+  console.log("----------------------- request header ----------------------------");
+  console.log("cipher: " + req.headers[config.headers_message_key]);
+  console.log("key: " + cipher.current_key());
+  var origin_data = {};
+  try {
+    origin_data = JSON.parse(
+      cipher.decipher(req.headers[config.headers_message_key])
+    );
+  } catch (e) {
+    console.log(e.toString());
+  }
+  console.log("decipher: " + JSON.stringify(origin_data));
 
-  delete req.headers[config.headers_url_key];
+  var opt = url.parse(origin_data['req_url']);
+  delete req.headers[config.headers_message_key];
 
   opt.headers = req.headers;
   opt.headers["host"] = opt.host;
@@ -62,7 +72,7 @@ function request_options(req){
 // set response 
 function set_response(req, res){
   res.writeHead(req.statusCode, req.headers);
-
+  
   req.on("data", function(chunk){
     res.write(chunk);
   });
@@ -82,4 +92,11 @@ function request_test(res){
       res.end(body);
     });
   }).end();
+}
+
+function cipher_log(str){
+  var buf = new Buffer(256);
+  var len = buf.write(str);
+
+  console.log(buf.toString('utf-8', 0, len));
 }

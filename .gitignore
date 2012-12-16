@@ -1,3 +1,7 @@
 manifest.yml
 config/config.js
 test.js
+
+server_key.pem
+server_cert.pem
+ssh/*
